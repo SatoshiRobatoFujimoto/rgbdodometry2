@@ -463,7 +463,7 @@ bool xsolveSystem(const Mat& C, const Mat& dI_dt, double detThreshold, Mat& ksi)
 	return true;
 }
 
-typedef void(*ComputeCFuncPtr)(double* C, double dIdx, double dIdy, const Point3f& p3d, double fx, double fy);
+typedef void(*xComputeCFuncPtr)(double* C, double dIdx, double dIdy, const Point3f& p3d, double fx, double fy);
 
 /*
 *  Estimate the rigid body motion from frame0 to frame1. The method is based on the paper
@@ -485,7 +485,7 @@ double fx, double fy, double sobelScale, double determinantThreshold,
 Mat& ksi)
 {
 	int Cwidth = -1;
-	ComputeCFuncPtr computeCFuncPtr = 0;
+	xComputeCFuncPtr computeCFuncPtr = 0;
 	if (transformType == RIGID_BODY_MOTION)
 	{
 		Cwidth = 6;
