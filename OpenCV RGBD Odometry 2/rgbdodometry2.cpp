@@ -201,7 +201,7 @@ static void pplWarpImage(const Mat& image, const Mat& depth,
 	vector<Point2f> points2d;
 	Mat cloud, transformedCloud;
 
-	xcvtDepth2Cloud(depth, cloud, cameraMatrix);
+	pplCvtDepth2Cloud(depth, cloud, cameraMatrix);
 	perspectiveTransform(cloud, transformedCloud, Rt);
 
 	projectPoints(transformedCloud.reshape(3, 1), Mat::eye(3, 3, CV_64FC1), Mat::zeros(3, 1, CV_64FC1), cameraMatrix, distCoeff, points2d);
