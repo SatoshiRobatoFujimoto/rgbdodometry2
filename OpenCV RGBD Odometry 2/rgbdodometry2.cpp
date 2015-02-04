@@ -69,8 +69,8 @@ template <typename Scalar> Scalar log2(Scalar v) { using std::log; return log(v)
 using namespace cv;
 using namespace std;
 
-inline static
-void computeC_RigidBodyMotion(double* C, double dIdx, double dIdy, const Point3f& p3d, double fx, double fy)
+/*inline */static
+void xcomputeC_RigidBodyMotion(double* C, double dIdx, double dIdy, const Point3f& p3d, double fx, double fy)
 {
 	double invz = 1. / p3d.z,
 		v0 = dIdx * fx * invz,
@@ -85,8 +85,8 @@ void computeC_RigidBodyMotion(double* C, double dIdx, double dIdy, const Point3f
 	C[5] = v2;
 }
 
-inline static
-void computeC_Rotation(double* C, double dIdx, double dIdy, const Point3f& p3d, double fx, double fy)
+/*inline */static
+void xcomputeC_Rotation(double* C, double dIdx, double dIdy, const Point3f& p3d, double fx, double fy)
 {
 	double invz = 1. / p3d.z,
 		v0 = dIdx * fx * invz,
@@ -98,8 +98,8 @@ void computeC_Rotation(double* C, double dIdx, double dIdy, const Point3f& p3d, 
 	C[2] = -p3d.y * v0 + p3d.x * v1;
 }
 
-inline static
-void computeC_Translation(double* C, double dIdx, double dIdy, const Point3f& p3d, double fx, double fy)
+/*inline */static
+void xcomputeC_Translation(double* C, double dIdx, double dIdy, const Point3f& p3d, double fx, double fy)
 {
 	double invz = 1. / p3d.z,
 		v0 = dIdx * fx * invz,
@@ -111,8 +111,8 @@ void computeC_Translation(double* C, double dIdx, double dIdy, const Point3f& p3
 	C[2] = v2;
 }
 
-inline static
-void computeProjectiveMatrix(const Mat& ksi, Mat& Rt)
+/*inline */static
+void xcomputeProjectiveMatrix(const Mat& ksi, Mat& Rt)
 {
 	CV_Assert(ksi.size() == Size(1, 6) && ksi.type() == CV_64FC1);
 
@@ -143,7 +143,7 @@ void computeProjectiveMatrix(const Mat& ksi, Mat& Rt)
 }
 
 static
-void cvtDepth2Cloud(const Mat& depth, Mat& cloud, const Mat& cameraMatrix)
+void pplCvtDepth2Cloud(const Mat& depth, Mat& cloud, const Mat& cameraMatrix)
 {
 //	CV_Assert(cameraMatrix.type() == CV_64FC1);
 	const double inv_fx = 1.f / cameraMatrix.at<double>(0, 0);
@@ -167,7 +167,7 @@ void cvtDepth2Cloud(const Mat& depth, Mat& cloud, const Mat& cameraMatrix)
 }
 
 static
-void cvtDepth2Cloud2(const Mat& depth, Mat& cloud, const Mat& cameraMatrix)
+void pplCvtDepth2Cloud2(const Mat& depth, Mat& cloud, const Mat& cameraMatrix)
 {
 	//	CV_Assert(cameraMatrix.type() == CV_64FC1);
 	const float inv_fx = 1.f / cameraMatrix.at<float>(0, 0);
@@ -192,7 +192,7 @@ void cvtDepth2Cloud2(const Mat& depth, Mat& cloud, const Mat& cameraMatrix)
 
 
 template<class ImageElemType>
-static void warpImage(const Mat& image, const Mat& depth,
+static void pplWarpImage(const Mat& image, const Mat& depth,
 	const Mat& Rt, const Mat& cameraMatrix, const Mat& distCoeff,
 	Mat& warpedImage)
 {
@@ -201,7 +201,7 @@ static void warpImage(const Mat& image, const Mat& depth,
 	vector<Point2f> points2d;
 	Mat cloud, transformedCloud;
 
-	cvtDepth2Cloud(depth, cloud, cameraMatrix);
+	xcvtDepth2Cloud(depth, cloud, cameraMatrix);
 	perspectiveTransform(cloud, transformedCloud, Rt);
 
 	projectPoints(transformedCloud.reshape(3, 1), Mat::eye(3, 3, CV_64FC1), Mat::zeros(3, 1, CV_64FC1), cameraMatrix, distCoeff, points2d);
@@ -223,7 +223,7 @@ static void warpImage(const Mat& image, const Mat& depth,
 			if (!cvIsNaN(cloud.at<Point3f>(y, x).z) && cloud.at<Point3f>(y, x).z > 0 &&
 				rect.contains(p2d) && zBuffer.at<float>(p2d) > p3d.z)
 			{
-				warpedImage.at<ImageElemType>(p2d) = image.at<ImageElemType>(y, x);
+				xwarpedImage.at<ImageElemType>(p2d) = image.at<ImageElemType>(y, x);
 				zBuffer.at<float>(p2d) = p3d.z;
 			}
 		}
@@ -231,7 +231,7 @@ static void warpImage(const Mat& image, const Mat& depth,
 }
 
 template<class ImageElemType>
-static void warpImage2(const Mat& image, const Mat& depth,
+static void pplWarpImage2(const Mat& image, const Mat& depth,
 	const Mat& Rt, const Mat& cameraMatrix, const Mat& distCoeff,
 	Mat& warpedImage)
 {
@@ -240,7 +240,7 @@ static void warpImage2(const Mat& image, const Mat& depth,
 	vector<Point2f> points2d;
 	Mat cloud, transformedCloud;
 
-	cvtDepth2Cloud2(depth, cloud, cameraMatrix);
+	pplCvtDepth2Cloud2(depth, cloud, cameraMatrix);
 	perspectiveTransform(cloud, transformedCloud, Rt);
 
 	projectPoints(transformedCloud.reshape(3, 1), Mat::eye(3, 3, CV_64FC1), Mat::zeros(3, 1, CV_64FC1), cameraMatrix, distCoeff, points2d);
@@ -269,16 +269,16 @@ static void warpImage2(const Mat& image, const Mat& depth,
 	});
 }
 
-static inline
-void set2shorts(int& dst, int short_v1, int short_v2)
+static/* inline*/
+void xset2shorts(int& dst, int short_v1, int short_v2)
 {
 	unsigned short* ptr = reinterpret_cast<unsigned short*>(&dst);
 	ptr[0] = static_cast<unsigned short>(short_v1);
 	ptr[1] = static_cast<unsigned short>(short_v2);
 }
 
-static inline
-void get2shorts(int src, int& short_v1, int& short_v2)
+static/* inline*/
+void xget2shorts(int src, int& short_v1, int& short_v2)
 {
 	typedef union { int vint32; unsigned short vuint16[2]; } s32tou16;
 	const unsigned short* ptr = (reinterpret_cast<s32tou16*>(&src))->vuint16;
@@ -287,7 +287,7 @@ void get2shorts(int src, int& short_v1, int& short_v2)
 }
 
 static
-int computeCorresp(const Mat& K, const Mat& K_inv, const Mat& Rt,
+int xcomputeCorresp(const Mat& K, const Mat& K_inv, const Mat& Rt,
 const Mat& depth0, const Mat& depth1, const Mat& texturedMask1, float maxDepthDiff,
 Mat& corresps)
 {
@@ -331,7 +331,7 @@ Mat& corresps)
 						if (c != -1)
 						{
 							int exist_u1, exist_v1;
-							get2shorts(c, exist_u1, exist_v1);
+							xget2shorts(c, exist_u1, exist_v1);
 
 							float exist_d1 = (float)(depth1.at<float>(exist_v1, exist_u1) * (KRK_inv_ptr[6] * exist_u1 + KRK_inv_ptr[7] * exist_v1 + KRK_inv_ptr[8]) + Kt_ptr[2]);
 
@@ -341,7 +341,7 @@ Mat& corresps)
 						else
 							correspCount++;
 
-						set2shorts(corresps.at<int>(v0, u0), u1, v1);
+						xset2shorts(corresps.at<int>(v0, u0), u1, v1);
 					}
 				}
 			}
@@ -351,8 +351,8 @@ Mat& corresps)
 	return correspCount;
 }
 
-static inline
-void preprocessDepth(Mat depth0, Mat depth1,
+static/* inline*/
+void pplPreprocessDepth(Mat depth0, Mat depth1,
 const Mat& validMask0, const Mat& validMask1,
 float minDepth, float maxDepth)
 {
@@ -375,7 +375,7 @@ float minDepth, float maxDepth)
 }
 
 static
-void buildPyramids(const Mat& image0, const Mat& image1,
+void pplBuildPyramids(const Mat& image0, const Mat& image1,
 const Mat& depth0, const Mat& depth1,
 const Mat& cameraMatrix, int sobelSize, double sobelScale,
 const vector<float>& minGradMagnitudes,
@@ -429,7 +429,7 @@ vector<Mat>& pyramidTexturedMask1, vector<Mat>& pyramidCameraMatrix)
 }
 
 static
-bool solveSystem(const Mat& C, const Mat& dI_dt, double detThreshold, Mat& ksi)
+bool xsolveSystem(const Mat& C, const Mat& dI_dt, double detThreshold, Mat& ksi)
 {
 #if defined(HAVE_EIGEN) && EIGEN_WORLD_VERSION == 3
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> eC, eCt, edI_dt;
@@ -469,15 +469,15 @@ typedef void(*ComputeCFuncPtr)(double* C, double dIdx, double dIdy, const Point3
 *  Estimate the rigid body motion from frame0 to frame1. The method is based on the paper
 *  "Real-Time Visual Odometry from Dense RGB-D Images", F. Steinbucker, J. Strum, D. Cremers, ICCV, 2011.
 */
-enum {
-	ROTATION2 = 1,
-	TRANSLATION2 = 2,
-	RIGID_BODY_MOTION2 = 4
-};
+//enum {
+//	ROTATION2 = 1,
+//	TRANSLATION2 = 2,
+//	RIGID_BODY_MOTION2 = 4
+//};
 
 
 static
-bool computeKsi(int transformType,
+bool xcomputeKsi(int transformType,
 const Mat& image0, const Mat&  cloud0,
 const Mat& image1, const Mat& dI_dx1, const Mat& dI_dy1,
 const Mat& corresps, int correspsCount,
@@ -489,17 +489,17 @@ Mat& ksi)
 	if (transformType == RIGID_BODY_MOTION)
 	{
 		Cwidth = 6;
-		computeCFuncPtr = computeC_RigidBodyMotion;
+		computeCFuncPtr = xcomputeC_RigidBodyMotion;
 	}
 	else if (transformType == ROTATION)
 	{
 		Cwidth = 3;
-		computeCFuncPtr = computeC_Rotation;
+		computeCFuncPtr = xcomputeC_Rotation;
 	}
 	else if (transformType == TRANSLATION)
 	{
 		Cwidth = 3;
-		computeCFuncPtr = computeC_Translation;
+		computeCFuncPtr = xcomputeC_Translation;
 	}
 	else
 	{
@@ -518,7 +518,7 @@ Mat& ksi)
 			if (corresps.at<int>(v0, u0) != -1)
 			{
 				int u1, v1;
-				get2shorts(corresps.at<int>(v0, u0), u1, v1);
+				xget2shorts(corresps.at<int>(v0, u0), u1, v1);
 				double diff = static_cast<double>(image1.at<uchar>(v1, u1)) -
 					static_cast<double>(image0.at<uchar>(v0, u0));
 				sigma += diff * diff;
@@ -535,7 +535,7 @@ Mat& ksi)
 			if (corresps.at<int>(v0, u0) != -1)
 			{
 				int u1, v1;
-				get2shorts(corresps.at<int>(v0, u0), u1, v1);
+				xget2shorts(corresps.at<int>(v0, u0), u1, v1);
 
 				double diff = static_cast<double>(image1.at<uchar>(v1, u1)) -
 					static_cast<double>(image0.at<uchar>(v0, u0));
@@ -553,22 +553,22 @@ Mat& ksi)
 	}
 
 	Mat sln;
-	bool solutionExist = solveSystem(C, dI_dt, determinantThreshold, sln);
+	bool solutionExist = xsolveSystem(C, dI_dt, determinantThreshold, sln);
 	if (solutionExist)
 	{
 		ksi.create(6, 1, CV_64FC1);
 		ksi = Scalar(0);
 
 		Mat subksi;
-		if (transformType == RIGID_BODY_MOTION2)
+		if (transformType == RIGID_BODY_MOTION)
 		{
 			subksi = ksi;
 		}
-		else if (transformType == ROTATION2)
+		else if (transformType == ROTATION)
 		{
 			subksi = ksi.rowRange(0, 3);
 		}
-		else if (transformType == TRANSLATION2)
+		else if (transformType == TRANSLATION)
 		{
 			subksi = ksi.rowRange(3, 6);
 		}
@@ -636,12 +636,12 @@ bool RGBDOdometry2(cv::Mat& Rt, const Mat& initRt,
 		minGradientMagnitudesPtr = &defaultMinGradMagnitudes;
 	}
 
-	preprocessDepth(depth0, depth1, validMask0, validMask1, minDepth, maxDepth);
+	pplPreprocessDepth(depth0, depth1, validMask0, validMask1, minDepth, maxDepth);
 
 	vector<Mat> pyramidImage0, pyramidDepth0,
 		pyramidImage1, pyramidDepth1, pyramid_dI_dx1, pyramid_dI_dy1, pyramidTexturedMask1,
 		pyramidCameraMatrix;
-	buildPyramids(image0, image1, depth0, depth1, cameraMatrix, sobelSize, sobelScale, *minGradientMagnitudesPtr,
+	pplBuildPyramids(image0, image1, depth0, depth1, cameraMatrix, sobelSize, sobelScale, *minGradientMagnitudesPtr,
 		pyramidImage0, pyramidDepth0, pyramidImage1, pyramidDepth1,
 		pyramid_dI_dx1, pyramid_dI_dy1, pyramidTexturedMask1, pyramidCameraMatrix);
 
@@ -654,7 +654,7 @@ bool RGBDOdometry2(cv::Mat& Rt, const Mat& initRt,
 		const Mat& levelImage0 = pyramidImage0[level];
 		const Mat& levelDepth0 = pyramidDepth0[level];
 		Mat levelCloud0;
-		cvtDepth2Cloud(pyramidDepth0[level], levelCloud0, levelCameraMatrix);
+		pplCvtDepth2Cloud(pyramidDepth0[level], levelCloud0, levelCameraMatrix);
 
 		const Mat& levelImage1 = pyramidImage1[level];
 		const Mat& levelDepth1 = pyramidDepth1[level];
@@ -673,14 +673,14 @@ bool RGBDOdometry2(cv::Mat& Rt, const Mat& initRt,
 		// Run transformation search on current level iteratively.
 		for (int iter = 0; iter < (*iterCountsPtr)[level]; iter++)
 		{
-			int correspsCount = computeCorresp(levelCameraMatrix, levelCameraMatrix.inv(), resultRt.inv(DECOMP_SVD),
+			int correspsCount = xcomputeCorresp(levelCameraMatrix, levelCameraMatrix.inv(), resultRt.inv(DECOMP_SVD),
 				levelDepth0, levelDepth1, pyramidTexturedMask1[level], maxDepthDiff,
 				corresps);
 
 			if (correspsCount == 0)
 				break;
 
-			bool solutionExist = computeKsi(transformType,
+			bool solutionExist = xcomputeKsi(transformType,
 				levelImage0, levelCloud0,
 				levelImage1, level_dI_dx1, level_dI_dy1,
 				corresps, correspsCount,
@@ -690,7 +690,7 @@ bool RGBDOdometry2(cv::Mat& Rt, const Mat& initRt,
 			if (!solutionExist)
 				break;
 
-			computeProjectiveMatrix(ksi, currRt);
+			xcomputeProjectiveMatrix(ksi, currRt);
 
 			resultRt = currRt * resultRt;
 
@@ -747,21 +747,21 @@ int main(int argc, char** argv){
 		return -1;
 	}
 
-	int transformationType = RIGID_BODY_MOTION2;
+	int transformationType = RIGID_BODY_MOTION;
 	if (argc == 6)
 	{
 		string ttype = argv[5];
 		if (ttype == "-rbm")
 		{
-			transformationType = RIGID_BODY_MOTION2;
+			transformationType = RIGID_BODY_MOTION;
 		}
 		else if (ttype == "-r")
 		{
-			transformationType = ROTATION2;
+			transformationType = ROTATION;
 		}
 		else if (ttype == "-t")
 		{
-			transformationType = TRANSLATION2;
+			transformationType = TRANSLATION;
 		}
 		else
 		{
@@ -814,7 +814,7 @@ int main(int argc, char** argv){
 	}
 
 	Mat warpedImage0;
-	warpImage2<Point3_<uchar> >(colorImage0, depthFlt0, Rt, cameraMatrix, distCoeff, warpedImage0);
+	pplWarpImage2<Point3_<uchar> >(colorImage0, depthFlt0, Rt, cameraMatrix, distCoeff, warpedImage0);
 
 	imshow("image0", colorImage0);
 	imshow("warped_image0", warpedImage0);
