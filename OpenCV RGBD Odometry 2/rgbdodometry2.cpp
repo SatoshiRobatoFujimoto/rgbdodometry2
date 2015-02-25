@@ -41,18 +41,12 @@
 //M*/
 
 #define SHOW_DEBUG_IMAGES 0
-#include "opencv2/core/core.hpp"
-#include "opencv2/calib3d/calib3d.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/contrib/contrib.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include <opencv2/opencv.hpp>
 #include <opencv_lib.hpp>
 #include <cstdio>
 #include <iostream>
 #include <ctime>
-
 #include <ppl.h>
-#include "opencv_lib.hpp"
 
 #if defined(HAVE_EIGEN) && EIGEN_WORLD_VERSION == 3
 #  ifdef ANDROID
